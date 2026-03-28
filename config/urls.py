@@ -30,7 +30,7 @@ urlpatterns = [
     path('api/v1/orders/',     include('apps.orders.urls')),
     path('api/v1/reviews/',    include('apps.reviews.urls')),
 
-    # API Schema & Swagger
+    
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/docs/',   SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('api/redoc/',  SpectacularRedocView.as_view(url_name='schema'),   name='redoc'),

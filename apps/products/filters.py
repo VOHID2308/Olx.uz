@@ -32,17 +32,14 @@ class ProductFilter(django_filters.FilterSet):
         """Kategoriya bo'yicha filterlash (slug yoki id)"""
         from apps.categories.models import Category
         try:
-            # ID bo'yicha
             category_id = int(value)
             category = Category.objects.get(id=category_id)
         except (ValueError, Category.DoesNotExist):
             try:
-                # Slug bo'yicha
                 category = Category.objects.get(slug=value)
             except Category.DoesNotExist:
                 return queryset.none()
 
-        # Shu kategoriya va barcha sub-kategoriyalar
         category_ids = self._get_category_ids(category)
         return queryset.filter(category__in=category_ids)
 

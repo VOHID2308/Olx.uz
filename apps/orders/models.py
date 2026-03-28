@@ -84,5 +84,4 @@ class Order(models.Model):
         self.status = self.Status.SOTIB_OLINGAN
         self.save(update_fields=['status'])
 
-        # Mahsulotni sotilgan deb belgilash
         self.product.mark_as_sold()

@@ -89,7 +89,6 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
     def retrieve(self, request, *args, **kwargs):
         """Ko'rilganda view_count ni oshirish"""
         instance = self.get_object()
-        # Faqat aktiv mahsulotlar public ko'rinish uchun
         if instance.status != 'aktiv' and (not request.user.is_authenticated or instance.seller != request.user):
             return Response(
                 {'error': 'Mahsulot topilmadi'},

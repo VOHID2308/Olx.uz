@@ -82,7 +82,6 @@ class ProductCreateUpdateSerializer(serializers.ModelSerializer):
         ]
 
     def validate(self, attrs):
-        # Faqat seller role o'z e'lonini qo'sha oladi
         user = self.context['request'].user
         if user.role != 'seller':
             raise serializers.ValidationError("Faqat sotuvchilar e'lon qo'sha oladi.")

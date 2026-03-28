@@ -106,7 +106,6 @@ class Product(models.Model):
         """E'lonni sotilgan deb belgilash"""
         self.status = self.Status.SOTILGAN
         self.save(update_fields=['status'])
-        # Sotuvchining total_sales ni oshirish
         if hasattr(self.seller, 'seller_profile'):
             self.seller.seller_profile.total_sales += 1
             self.seller.seller_profile.save(update_fields=['total_sales'])
