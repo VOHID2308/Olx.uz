@@ -5,12 +5,17 @@ Django settings for OLX.UZ Marketplace Backend
 from pathlib import Path
 from decouple import config
 from datetime import timedelta
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', default=False, cast=bool)
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost').split(',')
+
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
 
 DJANGO_APPS = [
     'django.contrib.admin',
@@ -55,21 +60,20 @@ ROOT_URLCONF = 'config.urls'
 AUTH_USER_MODEL = 'users.User'
 
 TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-            ],
-        },
-    },
+{
+'BACKEND': 'django.template.backends.django.DjangoTemplates',
+'DIRS': [BASE_DIR / 'templates'],
+'APP_DIRS': True,
+'OPTIONS': {
+'context_processors': [
+'django.template.context_processors.debug',
+'django.template.context_processors.request',
+'django.contrib.auth.context_processors.auth',
+'django.contrib.messages.context_processors.messages',
+],
+},
+},
 ]
-
 WSGI_APPLICATION = 'config.wsgi.application'
 
 DATABASES = {
@@ -138,9 +142,15 @@ SPECTACULAR_SETTINGS = {
     'SERVE_INCLUDE_SCHEMA': False,
 }
 
-# CORS
+# CORS — Mini App uchun ham ruxsat
 CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='http://localhost:3000').split(',')
 CORS_ALLOW_CREDENTIALS = True
 
+# Mini App uchun X-Frame-Options o'chirish
+X_FRAME_OPTIONS = 'ALLOWALL'
+
 # Telegram
 TELEGRAM_BOT_TOKEN = config('TELEGRAM_BOT_TOKEN', default='')
+WEBAPP_URL = "https://gentlemanly-unrentable-burma.ngrok-free.dev/"
+WEBHOOK_URL = "https://gentlemanly-unrentable-burma.ngrok-free.dev/"
+MINIAPP_URL = "https://gentlemanly-unrentable-burma.ngrok-free.dev"

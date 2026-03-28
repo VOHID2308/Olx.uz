@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>OLX.UZ</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-light: #eff6ff;
+      --success: #16a34a;
+      --success-light: #f0fdf4;
+      --danger: #dc2626;
+      --danger-light: #fef2f2;
+      --warning: #d97706;
+      --warning-light: #fffbeb;
+      --gray: #6b7280;
+      --gray-light: #f9fafb;
+      --border: #e5e7eb;
+      --text: #111827;
+      --text-muted: #6b7280;
+      --bg: #ffffff;
+      --card-bg: #ffffff;
+      --radius: 12px;
+      --radius-sm: 8px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--tg-theme-bg-color, #f3f4f6);
+      color: var(--tg-theme-text-color, var(--text));
+      min-height: 100vh;
+      padding-bottom: 80px;
+    }
+
+    /* ── NAV BAR ── */
+    .navbar {
+      background: var(--tg-theme-bg-color, #fff);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 16px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .navbar-logo { font-size: 20px; font-weight: 700; color: var(--primary); }
+    .navbar-user { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-muted); }
+    .avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--primary); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 600;
+    }
+
+    /* ── BOTTOM TAB ── */
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: var(--tg-theme-bg-color, #fff);
+      border-top: 1px solid var(--border);
+      display: flex; z-index: 100;
+    }
+    .tab-btn {
+      flex: 1; padding: 10px 4px 8px;
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+      background: none; border: none; cursor: pointer;
+      font-size: 10px; color: var(--text-muted); transition: color 0.15s;
+    }
+    .tab-btn.active { color: var(--primary); }
+    .tab-icon { font-size: 20px; }
+
+    /* ── PAGES ── */
+    .page { display: none; padding: 16px; }
+    .page.active { display: block; }
+
+    /* ── CARDS ── */
+    .card {
+      background: var(--tg-theme-bg-color, #fff);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      overflow: hidden; margin-bottom: 12px;
+    }
+    .card-body { padding: 12px 14px; }
+
+    /* ── PRODUCT GRID ── */
+    .product-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .product-card {
+      background: var(--tg-theme-bg-color, #fff);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      overflow: hidden; cursor: pointer;
+      transition: transform 0.1s;
+    }
+    .product-card:active { transform: scale(0.97); }
+    .product-img {
+      width: 100%; aspect-ratio: 1;
+      background: linear-gradient(135deg, #e0e7ff, #dbeafe);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 36px;
+    }
+    .product-info { padding: 8px 10px 10px; }
+    .product-title { font-size: 13px; font-weight: 500; line-height: 1.3; margin-bottom: 4px;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .product-price { font-size: 14px; font-weight: 700; color: var(--primary); }
+    .product-meta { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+
+    /* ── SEARCH ── */
+    .search-bar {
+      display: flex; gap: 8px; margin-bottom: 14px;
+    }
+    .search-input {
+      flex: 1; padding: 10px 14px; border-radius: var(--radius-sm);
+      border: 1px solid var(--border); font-size: 14px;
+      background: var(--tg-theme-bg-color, #fff);
+      color: var(--tg-theme-text-color, var(--text));
+      outline: none;
+    }
+    .search-input:focus { border-color: var(--primary); }
+    .btn {
+      padding: 10px 16px; border-radius: var(--radius-sm);
+      border: none; font-size: 14px; font-weight: 500;
+      cursor: pointer; transition: opacity 0.15s;
+    }
+    .btn:active { opacity: 0.8; }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    .btn-success { background: var(--success); color: #fff; }
+    .btn-danger  { background: var(--danger);  color: #fff; }
+    .btn-full    { width: 100%; margin-top: 8px; padding: 12px; font-size: 15px; }
+
+    /* ── SECTION TITLE ── */
+    .section-title {
+      font-size: 16px; font-weight: 600; margin-bottom: 12px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .section-title a { font-size: 13px; font-weight: 400; color: var(--primary); text-decoration: none; }
+
+    /* ── CATEGORIES ── */
+    .cat-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 14px; }
+    .cat-scroll::-webkit-scrollbar { display: none; }
+    .cat-chip {
+      flex-shrink: 0; padding: 6px 14px; border-radius: 20px;
+      border: 1px solid var(--border); font-size: 13px;
+      background: var(--tg-theme-bg-color, #fff);
+      color: var(--text); cursor: pointer; white-space: nowrap;
+      transition: all 0.15s;
+    }
+    .cat-chip.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+    /* ── BADGE ── */
+    .badge {
+      display: inline-block; font-size: 11px; padding: 2px 8px;
+      border-radius: 20px; font-weight: 500;
+    }
+    .badge-success { background: var(--success-light); color: var(--success); }
+    .badge-warning { background: var(--warning-light); color: var(--warning); }
+    .badge-danger  { background: var(--danger-light);  color: var(--danger);  }
+    .badge-primary { background: var(--primary-light); color: var(--primary); }
+
+    /* ── PROFILE ── */
+    .profile-header {
+      display: flex; align-items: center; gap: 14px;
+      padding: 20px 16px; background: var(--tg-theme-bg-color, #fff);
+      border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: 14px;
+    }
+    .profile-avatar {
+      width: 64px; height: 64px; border-radius: 50%;
+      background: var(--primary); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; font-weight: 700; flex-shrink: 0;
+    }
+    .profile-name { font-size: 18px; font-weight: 600; }
+    .profile-role { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+
+    /* ── LIST ITEM ── */
+    .list-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 13px 16px; border-bottom: 1px solid var(--border);
+      cursor: pointer;
+    }
+    .list-item:last-child { border-bottom: none; }
+    .list-item-left { display: flex; align-items: center; gap: 12px; }
+    .list-icon { font-size: 20px; }
+    .list-label { font-size: 15px; }
+    .list-arrow { color: var(--text-muted); font-size: 18px; }
+
+    /* ── ORDER CARD ── */
+    .order-card {
+      background: var(--tg-theme-bg-color, #fff);
+      border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 14px; margin-bottom: 10px;
+    }
+    .order-title { font-size: 14px; font-weight: 500; margin-bottom: 6px; }
+    .order-row { display: flex; justify-content: space-between; font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+
+    /* ── EMPTY STATE ── */
+    .empty { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+    .empty-icon { font-size: 48px; margin-bottom: 12px; }
+    .empty-text { font-size: 15px; }
+
+    /* ── LOADING ── */
+    .loading { text-align: center; padding: 40px; color: var(--text-muted); font-size: 14px; }
+    .spinner {
+      width: 32px; height: 32px; margin: 0 auto 12px;
+      border: 3px solid var(--border); border-top-color: var(--primary);
+      border-radius: 50%; animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── DETAIL ── */
+    .detail-overlay {
+      display: none; position: fixed; inset: 0;
+      background: var(--tg-theme-bg-color, #fff);
+      z-index: 200; overflow-y: auto;
+    }
+    .detail-overlay.open { display: block; }
+    .detail-header {
+      display: flex; align-items: center; gap: 10px;
+      padding: 14px 16px; border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; background: var(--tg-theme-bg-color, #fff); z-index: 1;
+    }
+    .back-btn {
+      background: none; border: none; font-size: 24px;
+      cursor: pointer; color: var(--primary); padding: 0 4px;
+    }
+    .detail-title { font-size: 16px; font-weight: 600; }
+    .detail-img {
+      width: 100%; aspect-ratio: 4/3;
+      background: linear-gradient(135deg, #e0e7ff, #dbeafe);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 72px;
+    }
+    .detail-body { padding: 16px; }
+    .detail-price { font-size: 24px; font-weight: 700; color: var(--primary); margin-bottom: 8px; }
+    .detail-name  { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+    .detail-desc  { font-size: 14px; color: var(--text-muted); line-height: 1.6; margin-bottom: 14px; }
+    .detail-meta  { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+    .detail-tag {
+      font-size: 12px; padding: 4px 10px; border-radius: 20px;
+      background: var(--gray-light); color: var(--gray); border: 1px solid var(--border);
+    }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(20px);
+      background: #1f2937; color: #fff; padding: 10px 20px; border-radius: 24px;
+      font-size: 14px; opacity: 0; transition: all 0.3s; z-index: 300; white-space: nowrap;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ── FORM ── */
+    .form-group { margin-bottom: 14px; }
+    .form-label { font-size: 13px; font-weight: 500; margin-bottom: 6px; display: block; color: var(--text-muted); }
+    .form-input, .form-select, .form-textarea {
+      width: 100%; padding: 11px 14px; border-radius: var(--radius-sm);
+      border: 1px solid var(--border); font-size: 14px;
+      background: var(--tg-theme-bg-color, #fff);
+      color: var(--tg-theme-text-color, var(--text)); outline: none;
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--primary); }
+    .form-textarea { resize: vertical; min-height: 80px; }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<div class="navbar">
+  <div class="navbar-logo">OLX.UZ</div>
+  <div class="navbar-user">
+    <div class="avatar" id="nav-avatar">?</div>
+    <span id="nav-name">Yuklanmoqda...</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════ PAGES ══════════════════════════════ -->
+
+<!-- 🏠 BOSH SAHIFA -->
+<div class="page active" id="page-home">
+  <div class="cat-scroll" id="cat-scroll">
+    <div class="cat-chip active" onclick="filterCat(null, this)">Hammasi</div>
+  </div>
+  <div class="search-bar">
+    <input class="search-input" id="search-input" placeholder="🔍 Mahsulot qidirish..." />
+    <button class="btn btn-primary" onclick="doSearch()">Izla</button>
+  </div>
+  <div class="section-title">Aktiv e'lonlar</div>
+  <div id="products-container">
+    <div class="loading"><div class="spinner"></div>Yuklanmoqda...</div>
+  </div>
+</div>
+
+<!-- ❤️ SEVIMLILAR -->
+<div class="page" id="page-favorites">
+  <div class="section-title">Sevimlilarim</div>
+  <div id="favorites-container">
+    <div class="loading"><div class="spinner"></div>Yuklanmoqda...</div>
+  </div>
+</div>
+
+<!-- 📦 BUYURTMALAR -->
+<div class="page" id="page-orders">
+  <div class="section-title">Buyurtmalarim</div>
+  <div id="orders-container">
+    <div class="loading"><div class="spinner"></div>Yuklanmoqda...</div>
+  </div>
+</div>
+
+<!-- 👤 PROFIL -->
+<div class="page" id="page-profile">
+  <div id="profile-container">
+    <div class="loading"><div class="spinner"></div>Yuklanmoqda...</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════ DETAIL ══════════════════════════════ -->
+<div class="detail-overlay" id="product-detail">
+  <div class="detail-header">
+    <button class="back-btn" onclick="closeDetail()">←</button>
+    <div class="detail-title">Mahsulot</div>
+  </div>
+  <div class="detail-img" id="detail-img">📦</div>
+  <div class="detail-body">
+    <div class="detail-price" id="detail-price"></div>
+    <div class="detail-name"  id="detail-name"></div>
+    <div class="detail-meta"  id="detail-meta"></div>
+    <div class="detail-desc"  id="detail-desc"></div>
+    <button class="btn btn-primary btn-full" id="detail-fav-btn" onclick="toggleFavorite()">❤️ Sevimlilarga qo'shish</button>
+    <button class="btn btn-success btn-full" id="detail-order-btn" onclick="placeOrder()">🛒 Buyurtma berish</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <button class="tab-btn active" onclick="switchTab('home',    this)"><span class="tab-icon">🏠</span>Bosh</button>
+  <button class="tab-btn"        onclick="switchTab('favorites',this)"><span class="tab-icon">❤️</span>Sevimli</button>
+  <button class="tab-btn"        onclick="switchTab('orders',  this)"><span class="tab-icon">📦</span>Buyurtma</button>
+  <button class="tab-btn"        onclick="switchTab('profile', this)"><span class="tab-icon">👤</span>Profil</button>
+</div>
+
+<!-- ══════════════════════════════ SCRIPTS ══════════════════════════════ -->
+<script>
+const tg     = window.Telegram.WebApp;
+const API    = '/api/v1';
+let   token  = null;
+let   user   = null;
+let   currentProduct = null;
+let   myFavoriteIds  = new Set();
+
+tg.ready();
+tg.expand();
+
+// ── AUTH ──────────────────────────────────────────────
+async function init() {
+  const tgUser = tg.initDataUnsafe?.user;
+  if (!tgUser) {
+    showToast('⚠️ Telegram dan oching');
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API}/auth/telegram-login/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        telegram_id: tgUser.id,
+        username:    tgUser.username || `user_${tgUser.id}`,
+        first_name:  tgUser.first_name || '',
+        last_name:   tgUser.last_name  || '',
+      })
+    });
+    const data = await res.json();
+    token = data.access;
+    user  = data.user;
+
+    // Navbar
+    const initials = (user.first_name || '?')[0].toUpperCase();
+    document.getElementById('nav-avatar').textContent = initials;
+    document.getElementById('nav-name').textContent   = user.first_name;
+
+    // Barcha ma'lumotlarni yuklash
+    loadCategories();
+    loadProducts();
+    loadFavoriteIds();
+  } catch (e) {
+    showToast('❌ Server bilan bog\'lanib bo\'lmadi');
+  }
+}
+
+// ── CATEGORIES ────────────────────────────────────────
+async function loadCategories() {
+  try {
+    const res  = await fetch(`${API}/categories/`);
+    const data = await res.json();
+    const cats = data.results || data;
+    const scroll = document.getElementById('cat-scroll');
+    cats.slice(0, 8).forEach(c => {
+      const chip = document.createElement('div');
+      chip.className = 'cat-chip';
+      chip.textContent = c.name;
+      chip.onclick = () => filterCat(c.slug, chip);
+      scroll.appendChild(chip);
+    });
+  } catch(e) {}
+}
+
+function filterCat(slug, el) {
+  document.querySelectorAll('.cat-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  loadProducts(slug ? `?category=${slug}` : '');
+}
+
+// ── PRODUCTS ──────────────────────────────────────────
+const EMOJIS = { 'Elektronika':'📱','Kiyim':'👕','Avtomobil':'🚗','Uy-joy':'🏠','Sport':'⚽','Kitob':'📚' };
+
+async function loadProducts(query = '') {
+  const box = document.getElementById('products-container');
+  box.innerHTML = '<div class="loading"><div class="spinner"></div>Yuklanmoqda...</div>';
+  try {
+    const res  = await fetch(`${API}/products/${query}`);
+    const data = await res.json();
+    const list = data.results || data;
+    renderProducts(list, box);
+  } catch(e) {
+    box.innerHTML = '<div class="empty"><div class="empty-icon">😔</div><div class="empty-text">Yuklab bo\'lmadi</div></div>';
+  }
+}
+
+function renderProducts(list, box) {
+  if (!list.length) {
+    box.innerHTML = '<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Mahsulot topilmadi</div></div>';
+    return;
+  }
+  const grid = document.createElement('div');
+  grid.className = 'product-grid';
+  list.forEach(p => {
+    const emoji = EMOJIS[p.category_name] || '📦';
+    const price = Number(p.price).toLocaleString('uz-UZ') + ' so\'m';
+    const card = document.createElement('div');
+    card.className = 'product-card';
+    card.innerHTML = `
+      <div class="product-img">${emoji}</div>
+      <div class="product-info">
+        <div class="product-title">${p.title}</div>
+        <div class="product-price">${price}</div>
+        <div class="product-meta">📍 ${p.region || ''}</div>
+      </div>`;
+    card.onclick = () => openDetail(p);
+    grid.appendChild(card);
+  });
+  box.innerHTML = '';
+  box.appendChild(grid);
+}
+
+function doSearch() {
+  const q = document.getElementById('search-input').value.trim();
+  loadProducts(q ? `?search=${encodeURIComponent(q)}` : '');
+}
+document.getElementById('search-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doSearch();
+});
+
+// ── PRODUCT DETAIL ────────────────────────────────────
+function openDetail(p) {
+  currentProduct = p;
+  const emoji = EMOJIS[p.category_name] || '📦';
+  document.getElementById('detail-img').textContent   = emoji;
+  document.getElementById('detail-price').textContent = Number(p.price).toLocaleString('uz-UZ') + ' so\'m';
+  document.getElementById('detail-name').textContent  = p.title;
+  document.getElementById('detail-desc').textContent  = p.description || '';
+  document.getElementById('detail-meta').innerHTML = `
+    <span class="detail-tag">📍 ${p.region || ''}</span>
+    <span class="detail-tag">🔖 ${p.condition || ''}</span>
+    <span class="detail-tag">👁 ${p.view_count || 0} ko'rish</span>
+    <span class="detail-tag">❤️ ${p.favorite_count || 0}</span>`;
+
+  const favBtn = document.getElementById('detail-fav-btn');
+  if (myFavoriteIds.has(p.id)) {
+    favBtn.textContent = '💔 Sevimlilardan olib tashlash';
+    favBtn.className   = 'btn btn-outline btn-full';
+  } else {
+    favBtn.textContent = '❤️ Sevimlilarga qo\'shish';
+    favBtn.className   = 'btn btn-primary btn-full';
+  }
+
+  document.getElementById('product-detail').classList.add('open');
+  tg.BackButton.show();
+  tg.BackButton.onClick(closeDetail);
+}
+
+function closeDetail() {
+  document.getElementById('product-detail').classList.remove('open');
+  tg.BackButton.hide();
+}
+
+// ── FAVORITES ─────────────────────────────────────────
+async function loadFavoriteIds() {
+  if (!token) return;
+  try {
+    const res  = await fetch(`${API}/favorites/`, { headers: { Authorization: `Bearer ${token}` } });
+    const data = await res.json();
+    const list = data.results || data;
+    myFavoriteIds = new Set(list.map(f => f.product?.id));
+  } catch(e) {}
+}
+
+async function loadFavorites() {
+  if (!token) { needLogin(); return; }
+  const box = document.getElementById('favorites-container');
+  box.innerHTML = '<div class="loading"><div class="spinner"></div>Yuklanmoqda...</div>';
+  try {
+    const res  = await fetch(`${API}/favorites/`, { headers: { Authorization: `Bearer ${token}` } });
+    const data = await res.json();
+    const list = data.results || data;
+    if (!list.length) {
+      box.innerHTML = '<div class="empty"><div class="empty-icon">❤️</div><div class="empty-text">Sevimlilar bo\'sh</div></div>';
+      return;
+    }
+    const grid = document.createElement('div');
+    grid.className = 'product-grid';
+    list.forEach(f => {
+      const p = f.product;
+      const emoji = EMOJIS[p?.category_name] || '📦';
+      const price = Number(p?.price || 0).toLocaleString('uz-UZ') + ' so\'m';
+      const card = document.createElement('div');
+      card.className = 'product-card';
+      card.innerHTML = `
+        <div class="product-img">${emoji}</div>
+        <div class="product-info">
+          <div class="product-title">${p?.title || ''}</div>
+          <div class="product-price">${price}</div>
+          <div class="product-meta">📍 ${p?.region || ''}</div>
+        </div>`;
+      card.onclick = () => openDetail(p);
+      grid.appendChild(card);
+    });
+    box.innerHTML = '';
+    box.appendChild(grid);
+  } catch(e) {
+    box.innerHTML = '<div class="empty"><div class="empty-icon">😔</div><div class="empty-text">Yuklab bo\'lmadi</div></div>';
+  }
+}
+
+async function toggleFavorite() {
+  if (!token) { needLogin(); return; }
+  const p = currentProduct;
+  if (!p) return;
+
+  if (myFavoriteIds.has(p.id)) {
+    // O'chirish
+    try {
+      const listRes  = await fetch(`${API}/favorites/`, { headers: { Authorization: `Bearer ${token}` } });
+      const listData = await listRes.json();
+      const fav = (listData.results || listData).find(f => f.product?.id === p.id);
+      if (fav) {
+        await fetch(`${API}/favorites/${fav.id}/`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+        myFavoriteIds.delete(p.id);
+        showToast('💔 Sevimlilardan olib tashlandi');
+        document.getElementById('detail-fav-btn').textContent = '❤️ Sevimlilarga qo\'shish';
+        document.getElementById('detail-fav-btn').className   = 'btn btn-primary btn-full';
+      }
+    } catch(e) { showToast('❌ Xato yuz berdi'); }
+  } else {
+    // Qo'shish
+    try {
+      const res = await fetch(`${API}/favorites/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ product_id: p.id })
+      });
+      if (res.ok) {
+        myFavoriteIds.add(p.id);
+        showToast('❤️ Sevimlilarga qo\'shildi');
+        document.getElementById('detail-fav-btn').textContent = '💔 Sevimlilardan olib tashlash';
+        document.getElementById('detail-fav-btn').className   = 'btn btn-outline btn-full';
+      } else {
+        const err = await res.json();
+        showToast(Object.values(err)[0] || '❌ Xato');
+      }
+    } catch(e) { showToast('❌ Xato yuz berdi'); }
+  }
+}
+
+// ── ORDERS ────────────────────────────────────────────
+const STATUS_LABEL = {
+  'kutilyapti':      { text: 'Kutilyapti',      cls: 'badge-warning' },
+  'kelishilgan':     { text: 'Kelishilgan',      cls: 'badge-primary' },
+  'sotib olingan':   { text: 'Sotib olingan',    cls: 'badge-success' },
+  'bekor qilingan':  { text: 'Bekor qilingan',   cls: 'badge-danger'  },
+};
+
+async function loadOrders() {
+  if (!token) { needLogin(); return; }
+  const box = document.getElementById('orders-container');
+  box.innerHTML = '<div class="loading"><div class="spinner"></div>Yuklanmoqda...</div>';
+  try {
+    const res  = await fetch(`${API}/orders/`, { headers: { Authorization: `Bearer ${token}` } });
+    const data = await res.json();
+    const list = data.results || data;
+    if (!list.length) {
+      box.innerHTML = '<div class="empty"><div class="empty-icon">📦</div><div class="empty-text">Buyurtma yo\'q</div></div>';
+      return;
+    }
+    box.innerHTML = '';
+    list.forEach(o => {
+      const st    = STATUS_LABEL[o.status] || { text: o.status, cls: 'badge-primary' };
+      const price = Number(o.final_price || 0).toLocaleString('uz-UZ');
+      const card  = document.createElement('div');
+      card.className = 'order-card';
+      card.innerHTML = `
+        <div class="order-title">${o.product?.title || 'Mahsulot'}</div>
+        <div class="order-row">
+          <span>💰 ${price} so'm</span>
+          <span class="badge ${st.cls}">${st.text}</span>
+        </div>
+        <div class="order-row">
+          <span>📅 ${new Date(o.created_at).toLocaleDateString('uz-UZ')}</span>
+          <span>${o.buyer_name || ''}</span>
+        </div>`;
+      box.appendChild(card);
+    });
+  } catch(e) {
+    box.innerHTML = '<div class="empty"><div class="empty-icon">😔</div><div class="empty-text">Yuklab bo\'lmadi</div></div>';
+  }
+}
+
+async function placeOrder() {
+  if (!token) { needLogin(); return; }
+  const p = currentProduct;
+  if (!p) return;
+  try {
+    const res = await fetch(`${API}/orders/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ product_id: p.id })
+    });
+    if (res.ok) {
+      showToast('✅ Buyurtma berildi!');
+      closeDetail();
+    } else {
+      const err = await res.json();
+      showToast(Object.values(err)[0] || '❌ Xato');
+    }
+  } catch(e) { showToast('❌ Xato yuz berdi'); }
+}
+
+// ── PROFILE ───────────────────────────────────────────
+async function loadProfile() {
+  if (!token) { needLogin(); return; }
+  const box = document.getElementById('profile-container');
+  try {
+    const res  = await fetch(`${API}/users/me/`, { headers: { Authorization: `Bearer ${token}` } });
+    const data = await res.json();
+    const initials = (data.first_name || '?')[0].toUpperCase();
+    const roleText = data.role === 'seller' ? '🏪 Sotuvchi' : '🛍 Xaridor';
+
+    let sellerSection = '';
+    if (data.role !== 'seller') {
+      sellerSection = `<button class="btn btn-primary btn-full" onclick="becomeSeller()" style="margin-top:14px">🏪 Sotuvchi bo'lish</button>`;
+    }
+
+    box.innerHTML = `
+      <div class="profile-header">
+        <div class="profile-avatar">${initials}</div>
+        <div>
+          <div class="profile-name">${data.first_name} ${data.last_name || ''}</div>
+          <div class="profile-role">${roleText}</div>
+          <div class="profile-role">@${data.username}</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="list-item" onclick="showToast('Tez orada...')">
+          <div class="list-item-left"><span class="list-icon">📱</span><span class="list-label">Telefon: ${data.phone_number || 'kiritilmagan'}</span></div>
+          <span class="list-arrow">›</span>
+        </div>
+        <div class="list-item" onclick="switchTab('orders', document.querySelectorAll('.tab-btn')[2])">
+          <div class="list-item-left"><span class="list-icon">📦</span><span class="list-label">Buyurtmalarim</span></div>
+          <span class="list-arrow">›</span>
+        </div>
+        <div class="list-item" onclick="switchTab('favorites', document.querySelectorAll('.tab-btn')[1])">
+          <div class="list-item-left"><span class="list-icon">❤️</span><span class="list-label">Sevimlilarim</span></div>
+          <span class="list-arrow">›</span>
+        </div>
+      </div>
+      ${sellerSection}`;
+  } catch(e) {
+    box.innerHTML = '<div class="empty"><div class="empty-icon">😔</div><div class="empty-text">Yuklab bo\'lmadi</div></div>';
+  }
+}
+
+async function becomeSeller() {
+  tg.showPopup({
+    title: 'Sotuvchi bo\'lish',
+    message: 'Do\'kon nomingizni kiriting:',
+    buttons: [
+      { id: 'ok',     type: 'ok',     text: 'Davom etish' },
+      { id: 'cancel', type: 'cancel', text: 'Bekor qilish' }
+    ]
+  }, async (btnId) => {
+    if (btnId !== 'ok') return;
+    // Mini App da input yo'q, shuning uchun prompt ishlatiladi
+    const shopName = prompt('Do\'kon nomingiz:');
+    if (!shopName) return;
+    const region = prompt('Viloyatingiz (masalan: Toshkent):');
+    if (!region) return;
+
+    try {
+      const res = await fetch(`${API}/users/me/upgrade-to-seller/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ shop_name: shopName, region, district: 'Noma\'lum' })
+      });
+      if (res.ok) {
+        showToast('🎉 Tabriklaymiz! Endi sotuvchisiz!');
+        user.role = 'seller';
+        loadProfile();
+      } else {
+        const err = await res.json();
+        showToast(Object.values(err)[0] || '❌ Xato');
+      }
+    } catch(e) { showToast('❌ Xato yuz berdi'); }
+  });
+}
+
+// ── TAB SWITCHING ─────────────────────────────────────
+function switchTab(name, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(`page-${name}`).classList.add('active');
+  el.classList.add('active');
+
+  if (name === 'favorites') loadFavorites();
+  if (name === 'orders')    loadOrders();
+  if (name === 'profile')   loadProfile();
+}
+
+// ── HELPERS ───────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function needLogin() {
+  showToast('⚠️ Avval /start bilan kiring');
+}
+
+// ── START ─────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
